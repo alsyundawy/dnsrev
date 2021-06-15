@@ -36,90 +36,88 @@ import time
 
 
 AUTO_SEP = ";; ---- dnsrev.py ---- automatically generated, do not edit ---- dnsrev.py ----"
-
-
-def subnet_rev(full_addr):
-	"""Like dns.reversename.from_address but for subnets."""
-	addr, mask = full_addr.split("/")
-	full_label = str(dns.reversename.from_address(addr))
-	if ':' in addr:
-		rest = int((128 - int(mask)) / 4)
-	else:
-		rest = int((32 - int(mask)) / 8)
-	return full_label.split(".", rest)[-1]
+                def subnet_rev(full_addr):
+        """Likdns.reversename.from_address but for subnets."""
+        addr, mask = full_addr.split("/")
+        full_label = str(dns.reversename.from_address(addr))
+        if ':' in addr:
+                rest = int((128 - int(mask)) / 4)
+        else:
+                rest = int((32 - int(mask)) / 8)
+        return full_label.split(".", rest)[-1]
 
 
 def parse_zone(fn, zone):
-	"""Feed a zonefile through named-compilezone."""
-	p = subprocess.Popen(["/usr/sbin/named-compilezone", "-o", "-", zone, fn],
-	                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	zone, errors = p.communicate()
-	if p.returncode > 0:
-		print("While parsing %s:\n" % fn)
-		print(errors)
-		sys.exit(1)
-	
-	return (zone.decode("utf-8").splitlines())
+        """Feed a zonefile through named-compilezone."""
+        p = subprocess.Popen(["/usr/sbin/named-compilezone", "-o", "-", zone, fn],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        zone, errors = p.communicate()
+        if p.returncode > 0:
+                print("While parsing %s:\n" % fn)
+                print(errors)
+                sys.exit(1)
+
+        return (zone.decode("utf-8").splitlines())
 
 
 def dns_re(types):
-	"""Simple DNS zonefile line matcher."""
-	return re.compile(r"^([^\s]*\.)\s+(?:\d+\s+)?IN\s+(%s)\s+(.*)$" % "|".join(types))
+        """Simple DNS zonefile line matcher."""
+        return re.compile(r"^([^\s]*\.)\s+(?:\d+\s+)?IN\s+(%s)\s+(.*)$" % "|".join(types))
 
 
 def get_flag(flag, default=None):
-	"""Ugly getopt wrapper."""
-	flag = "-%s" % flag
-	flags = getopt.getopt(sys.argv[1:], "dhnsc:")[0]
-	res = [y for x, y in flags if x == flag]
-	if len(res) == 0:
-		if default is not None:
-			return default
-		else:
-			return False
+        """Ugly getopt wrapper."""
+        flag = "-%s" % flag
+        flags = getopt.getopt(sys.argv[1:], "dhnsc:")[0]
+        res = [y for x, y in flags if x == flag]
+        if len(res) == 0:
+                if default is not None:
+                        return default
+                else:
+                        return False
 
-	elif res[0] == "":
-		return True
-	else:
-		return res[0]
+        elif res[0] == "":
+                return True
+        else:
+                return res[0]
 
 
 def new_soa(old):
-	"""Create new SOA for today's date (or increment the old one if
-	otherwise the one would would be lower."""
-	tm = time.localtime()
-	new = (tm.tm_year * 1000000 +
-	       tm.tm_mon  *   10000 +
-	       tm.tm_mday *     100)
-	if new > old:
-		return new
-	else:
-		# Just +1 if necessary.
-		return old + 1
+        """Create new SOA for today's date (or increment the old one if
+        otherwise the one would would be lower."""
+        tm = time.localtime()
+        new = (tm.tm_year * 1000000 +
+               tm.tm_mon  *   10000 +
+               tm.tm_mday *     100)
+        if new > old:
+                return new
+        else:
+                # Just +1 if necessary.
+                return old + 1
 
 
 # Using this more as a struct.
 class ZoneFile(object):
-	def __init__(self, fn):
-		self.fn = fn
+        def __init__(self, fn):
+                self.fn = fn
 
-	def mktemp(self):
-		dir, fn = os.path.split(self.fn)
-		return tempfile.NamedTemporaryFile(dir=dir, prefix=(fn + ".")).name
+        def mktemp(self):
+                dir, fn = os.path.split(self.fn)
+                return tempfile.NamedTemporaryFile(dir=dir, prefix=(fn + ".")).name
 
 
 cfg = {}
 cfg_file = get_flag("c", "dnsrev.conf")
 
 try:
-	code = compile(open(cfg_file).read(), cfg_file, 'exec')
-	exec(code, cfg)
+        code = compile(open(cfg_file).read(), cfg_file, 'exec')
+        exec(code, cfg)
 
 except IOError:
-	pass
+        pass
 
 if not cfg or get_flag("h"):
-	print("""\
+        print("""\
 dnsrev - Autogen/refresh reverse DNS zonefiles.
 
 Set your forward and reverse zones. All zonefiles have to exist already,
@@ -147,122 +145,122 @@ netmask) in REV_ZONES.
 You can list as many forward and reverse zones as you want. There doesn't
 have to be any kind of 1:1 relationship between any of them.""")
 	
-	sys.exit(1)
+        sys.exit(1)
 
 
 # Convert all config data into zonefile "objects".
 rev_files = []
 for zone in cfg["REV_ZONES"]:
-	fn, sn = zone[0:2]
-	o = ZoneFile(fn)
-	o.sn = sn
-	o.sno = ipaddr.IPNetwork(sn)
-	if len(zone) > 2:
-		o.zone = zone[2]
-	else:
-		o.zone = subnet_rev(sn)
-	o.manual = {}
-	o.auto = {}
-	rev_files.append(o)
+        fn, sn = zone[0:2]
+        o = ZoneFile(fn)
+        o.sn = sn
+        o.sno = ipaddr.IPNetwork(sn)
+        if len(zone) > 2:
+                o.zone = zone[2]
+        else:
+                o.zone = subnet_rev(sn)
+        o.manual = {}
+        o.auto = {}
+        rev_files.append(o)
 
 fwd_files = []
 for fn, zone in cfg["FWD_ZONES"]:
-	o = ZoneFile(fn)
-	o.zone = zone
-	fwd_files.append(o)
+        o = ZoneFile(fn)
+        o.zone = zone
+        fwd_files.append(o)
 
 
 # Get all manually-set reverse info (and don't autogen that part).
 revre = dns_re(["PTR", "SOA"])
 for f in rev_files:
-	cont = open(f.fn).read()
-	parts = cont.split(AUTO_SEP)
-	f.head = parts[0]
-	f.oldauto = None
-	if len(parts) > 1: # Better not be > 2 actually!
-		f.oldauto = parts[1].strip().splitlines()
+        cont = open(f.fn).read()
+        parts = cont.split(AUTO_SEP)
+        f.head = parts[0]
+        f.oldauto = None
+        if len(parts) > 1: # Better not be > 2 actually!
+                f.oldauto = parts[1].strip().splitlines()
 	
-	fn_tmp = f.mktemp()
-	open(fn_tmp, "w").write(f.head)
-	for line in parse_zone(fn_tmp, f.zone):
-		m = revre.match(line)
-		if not m:
-			continue
-		mg = m.groups()
+        fn_tmp = f.mktemp()
+        open(fn_tmp, "w").write(f.head)
+        for line in parse_zone(fn_tmp, f.zone):
+                m = revre.match(line)
+                if not m:
+                        continue
+                mg = m.groups()
 		
-		if mg[1] == "PTR":
-			label, _, name = m.groups()
-			f.manual[label] = name
-		else:
-			soa = mg[2].split(" ")
-			f.serial = int(soa[2])
+                if mg[1] == "PTR":
+                        label, _, name = m.groups()
+                        f.manual[label] = name
+                else:
+                        soa = mg[2].split(" ")
+                        f.serial = int(soa[2])
 	
-	os.unlink(fn_tmp)
+        os.unlink(fn_tmp)
 
 
 # Get all forward zone info.
 fwd = []
 for f in fwd_files:
-	fwd += parse_zone(f.fn, f.zone)
+        fwd += parse_zone(f.fn, f.zone)
 
 addrs = []
 addrre = dns_re(["A", "AAAA"])
 for line in fwd:
-	m = addrre.match(line)
-	if not m:
-		continue
+        m = addrre.match(line)
+        if not m:
+                continue
 	
-	name, _, address = m.groups()
-	for f in rev_files:
-		if ipaddr.IPNetwork(address) in f.sno:
-			if f.sno.ip.version == 4 and f.sno.prefixlen > 24:
-				label = "%s.%s" % (address.split(".")[3], f.zone)
-			else:
-				label = str(dns.reversename.from_address(address))
-			if label in f.manual:
-				#print "Already manually created: %s" % address
-				pass # python forever
-			elif label not in f.auto:
-				f.auto[label] = name
-			else:
-				print("Duplicate entry, two names for %s" % address)
+        name, _, address = m.groups()
+        for f in rev_files:
+                if ipaddr.IPNetwork(address) in f.sno:
+                        if f.sno.ip.version == 4 and f.sno.prefixlen > 24:
+                                label = "%s.%s" % (address.split(".")[3], f.zone)
+                        else:
+                                label = str(dns.reversename.from_address(address))
+                        if label in f.manual:
+                                #print "Already manually created: %s" % address
+                                pass # python forever
+                        elif label not in f.auto:
+                                f.auto[label] = name
+                        else:
+                                print("Duplicate entry, two names for %s" % address)
 
 
 # Generate the reverse files.
 for f in rev_files:
-	if f.auto:
-		recs = []
-		for ad in sorted(f.auto.keys()):
-			recs.append("%-50s  IN PTR %s" % (ad, f.auto[ad]))
+        if f.auto:
+                recs = []
+                for ad in sorted(f.auto.keys()):
+                        recs.append("%-50s  IN PTR %s" % (ad, f.auto[ad]))
 		
-		if recs == f.oldauto:
-			print("No changes for %s" % f.fn)
+                if recs == f.oldauto:
+                        print("No changes for %s" % f.fn)
 		
-		else:
-			serial = new_soa(f.serial)
-			print("Updating %s, new serial %d" % (f.fn, serial))
+                else:
+                        serial = new_soa(f.serial)
+                        print("Updating %s, new serial %d" % (f.fn, serial))
 			
-			head = f.head.rstrip()
-			if not get_flag("s"):
-				serre = re.compile(r"\b(SOA\b.*?)\b%d\b" % f.serial, re.S)
-				head = serre.sub(r"\g<1>%d" % serial, head)
+                        head = f.head.rstrip()
+                        if not get_flag("s"):
+                                serre = re.compile(r"\b(SOA\b.*?)\b%d\b" % f.serial, re.S)
+                                head = serre.sub(r"\g<1>%d" % serial, head)
 			
-			fn_tmp = f.mktemp()
-			o = open(fn_tmp, "w")
-			o.write(head)
-			o.write("\n\n%s\n\n%s\n" % (AUTO_SEP, "\n".join(recs)))
-			o.close()
+                        fn_tmp = f.mktemp()
+                        o = open(fn_tmp, "w")
+                        o.write(head)
+                        o.write("\n\n%s\n\n%s\n" % (AUTO_SEP, "\n".join(recs)))
+                        o.close()
 			
-			if get_flag("d"):
-				p = subprocess.Popen(["/usr/bin/diff", "-u", f.fn, fn_tmp])
-				p.communicate()
+                        if get_flag("d"):
+                                p = subprocess.Popen(["/usr/bin/diff", "-u", f.fn, fn_tmp])
+                                p.communicate()
 			
-			if not get_flag("n"):
-				os.rename(fn_tmp, f.fn)
-			else:
-				os.unlink(fn_tmp)
+                        if not get_flag("n"):
+                                os.rename(fn_tmp, f.fn)
+                        else:
+                                os.unlink(fn_tmp)
 	
-	else:
-		# Bug: If the file had some autogen data we won't delete it. Oh well.
-		print("No data for %s" % f.fn)
-		pass
+        else:
+                # Bug: If the file had some autogen data we won't delete it. Oh well.
+                print("No data for %s" % f.fn)
+                pass
