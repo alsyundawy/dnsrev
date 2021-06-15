@@ -26,6 +26,7 @@ chmod u+x /etc/bind/dnsrev.py
 update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
 update-alternatives --config python
 ```
+Tested on Ubuntu 20.04 LTS.
 
 ## Usage
 
