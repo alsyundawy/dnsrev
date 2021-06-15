@@ -221,7 +221,7 @@ for line in fwd:
 				label = str(dns.reversename.from_address(address))
 			if label in f.manual:
 				#print "Already manually created: %s" % address
-				pass # fuck you python
+				pass # python forever
 			elif label not in f.auto:
 				f.auto[label] = name
 			else:
