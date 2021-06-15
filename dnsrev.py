@@ -154,7 +154,7 @@ for zone in cfg["REV_ZONES"]:
         fn, sn = zone[0:2]
         o = ZoneFile(fn)
         o.sn = sn
-        o.sno = ipaddr.IPNetwork(sn)
+        o.sno = netaddr.IPNetwork(sn)
         if len(zone) > 2:
                 o.zone = zone[2]
         else:
@@ -212,7 +212,7 @@ for line in fwd:
 	
         name, _, address = m.groups()
         for f in rev_files:
-                if ipaddr.IPNetwork(address) in f.sno:
+                if netaddr.IPNetwork(address) in f.sno:
                         if f.sno.ip.version == 4 and f.sno.prefixlen > 24:
                                 label = "%s.%s" % (address.split(".")[3], f.zone)
                         else:
