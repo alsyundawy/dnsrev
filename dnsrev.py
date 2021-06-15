@@ -20,13 +20,13 @@
 #
 
 ############################### DEPENDENCIES ###############################
-# If it doesn't run properly, make sure you have the dnspython and ipaddr
+# If it doesn't run properly, make sure you have the dnspython and netaddr
 # Python modules installed, and named-compilezones. On Debian systems, just
-# apt-get install python-ipaddr python-dnspython bind9utils
+# apt-get install python3-dnspython python3-netaddr bind9utils
 
 import dns.reversename
 import getopt
-import ipaddr
+import netaddr
 import os
 import re
 import subprocess
