@@ -36,7 +36,7 @@ import time
 
 
 AUTO_SEP = ";; ---- dnsrev.py ---- automatically generated, do not edit ---- dnsrev.py ----"
-                def subnet_rev(full_addr):
+def subnet_rev(full_addr):
         """Likdns.reversename.from_address but for subnets."""
         addr, mask = full_addr.split("/")
         full_label = str(dns.reversename.from_address(addr))
