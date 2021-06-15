@@ -14,7 +14,7 @@ Features:
 
 ## Dependencies
 
-It uses the `dnspython` and `ipaddr` Python modules, and
+It uses the `dnspython` and `netaddr` Python modules, and
 `named-compilezones`. On Debian-like systems, just run:
 
 ```
