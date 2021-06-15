@@ -19,6 +19,7 @@ It uses the `dnspython` and `netaddr` Python modules, and
 
 ```
 apt -y install python3-dnspython python3-netaddr bind9utils
+
 wget -O /etc/bind/dnsrev.conf https://raw.githubusercontent.com/pedro-popiolek/dnsrev/master/dnsrev.conf
 wget -O /etc/bind/dnsrev.py https://raw.githubusercontent.com/pedro-popiolek/dnsrev/master/dnsrev.py
 chmod u+x /etc/bind/dnsrev.py
