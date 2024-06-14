@@ -14,12 +14,19 @@ Features:
 
 ## Dependencies
 
-It uses the `dnspython` and `ipaddr` Python modules, and
+It uses the `dnspython` and `netaddr` Python modules, and
 `named-compilezones`. On Debian-like systems, just run:
 
 ```
-apt-get install python-ipaddr python-dnspython bind9utils
+apt -y install python3-dnspython python3-netaddr bind9utils
+
+wget -O /etc/bind/dnsrev.conf https://raw.githubusercontent.com/pedro-popiolek/dnsrev/master/dnsrev.conf
+wget -O /etc/bind/dnsrev.py https://raw.githubusercontent.com/pedro-popiolek/dnsrev/master/dnsrev.py
+chmod u+x /etc/bind/dnsrev.py
+update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
+update-alternatives --config python
 ```
+Tested on Ubuntu 20.04 LTS.
 
 ## Usage
 
